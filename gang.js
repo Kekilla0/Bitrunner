@@ -1,19 +1,20 @@
 /** @param {NS} ns **/
 let actions = [];
 let time = 0;
-let priority_variables = [10, 20, 12];
+let priority_variables = [10, 20, 80, 12];
 
 export async function main(ns) {
+  actions = []; time = 0;
   ns.disableLog('ALL');
   ns.tail();
 
   while (true) {
-    await gangManger(ns);
+    await gangManger(ns, ns.args[0]);
     await ns.sleep(1000);
   }
 }
 
-async function gangManger(ns) {
+async function gangManger(ns, p) {
   let player = ns.getPlayer();
   let faction = {};
   let gang = ns.gang.inGang();
@@ -35,7 +36,7 @@ async function gangManger(ns) {
     //check or get faction here
 
     if (ns.gang.canRecruitMember()) {
-      let n = ns.gang.getMemberNames().length
+      let n = ns.gang.getMemberNames().length;
       let t = ns.gang.recruitMember(`gm${n}`);
       if (t) addAction(`Recruited (gm${n})`, true);
     }
@@ -59,10 +60,10 @@ async function gangManger(ns) {
       const available_equipment = equipment.filter(e => !member.upgrades.includes(e.name)).sort((a, b) => a.cost - b.cost);
       if (available_equipment.length >= 1 && (player.money * 0.05 > available_equipment[0].cost)) {
         let t = ns.gang.purchaseEquipment(member.name, available_equipment[0].name);
-        if (t) addAction(`${member.name} given ${available_equipment[0].name}`, true);
+        if (t) addAction(`${member.name} given ${available_equipment[0].name}`);
       }
 
-      priority = getPriority();
+      priority = p === undefined ? getPriority() : p;
 
       let task = getTask(gang, member, tasks, priority);
       if (task.name !== member.task) {
@@ -72,21 +73,11 @@ async function gangManger(ns) {
     }
   }
 
+  if(time == 0) console.log("GANG | TEST DATA | ", { player, faction, gang, members, tasks, equipment, priority, p });
+
   display();
   time++;
   if (actions.length > 10) actions = actions.filter(a => a.time + 30 !== time);
-  else {
-    if (actions.length > 0 && actions[0]?.time + 30 === time)
-      actions.shift();
-  }
-
-  function getPriority() {
-    let [min, max, mem] = priority_variables;
-
-    if (gang.respect > gang.wantedLevel * max) return "wanted";
-    if (gang.respect < gang.wantedLevel * min && members.length < mem) return "respect";
-    return "money";
-  }
 
   function display() {
     ns.clearLog();
@@ -98,11 +89,11 @@ async function gangManger(ns) {
     ns.print(`║ Respect ║${formatString(ns.nFormat(gang.respect,'0.00a'), 19)}║${formatString(ns.nFormat(gang.respectGainRate, '0.00a') + "/sec", 19)}║`);
     ns.print(`║  Wanted ║${formatString(ns.nFormat(gang.wantedLevel,'0.00a'), 19)}║${formatString(ns.nFormat(gang.wantedLevelGainRate, '0.00a') + "/sec", 19)}║`);
     ns.print(`║ Members ║${formatString(members.length, 19)}║${formatString("Reserved", 19)}║`); //reserved for # of respect for next member
-    ns.print(`╠═════════╬═══════════════════╬═══════════════════╣`);
-    ns.print(`║    Name ║${formatString("Money Gain", 19)}║${formatString("Respect Gain", 19)}║`); //add wanted gain as well to this, shrint the columbs
-    ns.print(`${members.reduce((a,b,i,r) => a += `║ ${formatString(b.name, 7)} ║${formatString(ns.nFormat(b.moneyGain, '0.00a'), 15) + "/sec"}║${formatString(ns.nFormat(b.respectGain, '0.00a'), 15) + "/sec"}║${i == r.length - 1 ? '' : '\n'}`, ``)}`);
-    ns.print(`╠═════════╬═══════════════════╩═══════════════════╣`);
-    ns.print(`║  Action ║ ${formatString(` Priority : ${priority}`, 38, "=")}║`);
+    ns.print(`╠═════════╬════════════╦══════╩═════╦═════════════╣`);
+    ns.print(`║    Name ║${formatString("Money Gain", 12)}║${formatString("Respect Gain", 12)}║${formatString("Wanted Gain", 13)}║`); //add wanted gain as well to this, shrink the columbs
+    ns.print(`${members.reduce((a,b,i,r) => a += `║ ${formatString(b.name, 7)} ║${formatString(ns.nFormat(b.moneyGain, '0.00a'), 8) + "/sec"}║${formatString(ns.nFormat(b.respectGain, '0.00a'), 8) + "/sec"}║${formatString(ns.nFormat(b.wantedLevelGain, '0.00a'), 9) + "/sec"}║${i == r.length - 1 ? '' : '\n'}`, ``)}`);
+    ns.print(`╠═════════╬════════════╩════════════╩═════════════╣`);
+    ns.print(`║  Action ║ ${formatString(` Priority : ${priority} `, 38, "=")}║`);
     ns.print(`╠═════════╩═══════════════════════════════════════╣`);
     ns.print(`${actions.reduce((a,b,i,r) => a += `║${formatString(b.text, 49)}║${i == r.length - 1 ? '' : '\n'}`, ``)}`);
     ns.print(`╚═════════════════════════════════════════════════╝`);
@@ -114,6 +105,15 @@ async function gangManger(ns) {
       else
         return str.padStart(length, padding);
     }
+  }
+
+  /* should add a mixed mode */
+  function getPriority() {
+    let [min, max, mon, mem] = priority_variables;
+
+    if (gang.respect >= gang.wantedLevel * min) return "respect";
+    if (gang.respect >= gang.wantedLevel * max) return "wanted";
+    return "money";
   }
 
   function getSkills(isHacking) {
