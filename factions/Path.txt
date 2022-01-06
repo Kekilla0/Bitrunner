@@ -6,9 +6,14 @@ Begin Hacking
   - Black Hand (347HL, BD)
   - BitRunners (521HL, BD)
 
-
 Begin Hacknet
   - Netburners (80HL, HNL100, HNR 8, HNC 4)
+
+Work
+  joesguns
+  carmichael sec.
+  university
+  powerhouse gym
 
 Travel
   -Sector 12 (15m)

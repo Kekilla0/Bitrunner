@@ -1,7 +1,20 @@
 import * as server_info from '/scripts/server.js';
 import * as player_info from '/scripts/player.js';
 
-/* */
+
+
+/* 13.10gb */
+export async function main(ns){
+  let time = 0;
+
+  while(true){
+    const {player, servers} = await manager();
+    display(ns, player, servers);
+    time++;
+  }
+}
+
+/* Can be used as an import or as a stand alone*/
 export async function manager(ns){
   let servers = server_info.getAll(ns);
   let player  = player_info.getAll(ns);
@@ -12,7 +25,7 @@ export async function manager(ns){
   for(let server of servers.filter(s => !player.files.reduce((a,b) => a && s.files.installed.includes(b.name), true)))
     await copy_files(ns, player, server);
 
-  hack(ns, player, server);
+  hack(ns, player, servers);
 }
 
 export function root(ns, player, server){
@@ -33,8 +46,8 @@ export function hack(ns, player, servers){
   for(let target of targets){
     hosts = hosts.filter(s => s.ram.threads(1.75) > 0);
     
-    let [ wf, hf, gf ] = player.files;
-    let gt = target.analyze.grow(), wt = target.analyze.weak(), ht = target.analyze.hack();
+    let files = player.files;
+    let thread_analysis = [ target.analyze.grow(), target.analyze.weak(), target.analyze.hack()];
     
     console.log({ ns, player, servers, hosts, target, g, w, h, wf, hf, gf});
 
@@ -42,18 +55,27 @@ export function hack(ns, player, servers){
       let threads = host.ram.threads(1.75);
 
       while(threads > 0){
-        let pid = 0; 
-        if(gt > 0)
-          pid = ns.exec(gf.name, host.name, 1, target.name, id());
-        else if(wt > 0)
-          pid = ns.exec(wf.name, host.name, 1, target.name, id());
-        else if(ht > 0)
-          pid = ns.exec(hf.name, host.name, 1, target.name, id());
-        else if(gt == 0 && wt == 0 & ht == 0 && threads > 0)
-          threads = 0;
+        for(let i = 0; i < files.length; i++){
+          let file = files[i], analysis = thread_analysis[i];
 
-        threads-=(pid > 0 ? 1: 0);
+          if(analysis == 0) continue;
+
+          if(threads > analysis){
+            host.exec(file, target, analysis);
+            threads -= analysis;
+            thread_analysis[i] = 0;
+          }else{
+            host.exec(file, target, threads);
+            thread_analysis[i] -= threads;
+            threads = 0;
+          }
+        }
       }
     }
   }
+}
+
+//Brainstorm how we want this to look
+function display(ns, player, servers){
+  ns.clearLog();
 }

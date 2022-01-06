@@ -62,10 +62,9 @@ export function get(ns, name){
         return ((data.hackDifficulty - data.minDifficulty) / ns.weakenAnalyze(threads, cores)) - servers.reduce((a,b) => a+= b.files.running.filter(f => f.filename == player.files[0].name && f.args.includes(name)).reduce((c,d) => c += d.threads, 0), 0);
       }
     },
-    getAction : function(){
-      if(this.money.available < this.money.max * .8) return 'G';
-      if(this.security.level > this.security.min + 5) return 'W';
-      return 'H';
-    },
+    exec : function(file, target, threads){
+      const id = (l=16) => Math.random().toString(36).slice(2).substring(0,l);
+      ns.exec(file.name, this.name, threads, id());
+    }
   }
 }

@@ -5,9 +5,9 @@ export function get(ns){
   let output_object = {
     money : data.money,
     files : [
+      { key : "G", name : "grow.script", cmd : "grow(args)", size : 1.75},
       { key : "W", name : "weak.script", cmd : "weaken(args);", size : 1.75,},
       { key : "H", name : "hack.script", cmd : "hack(args)", size : 1.75},
-      { key : "G", name : "grow.script", cmd : "grow(args)", size : 1.75},
     ],
     exes : ["brutessh","ftpcrack","relaysmtp","sqlinject","httpworm"].filter(e => ns.fileExists(`${e}.exe`)),
   };
