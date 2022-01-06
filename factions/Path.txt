@@ -1,0 +1,26 @@
+Game Start
+
+Begin Hacking 
+  - CyberSec (60HL, BD)
+  - NiteSec (205HL, BD)
+  - Black Hand (347HL, BD)
+  - BitRunners (521HL, BD)
+
+
+Begin Hacknet
+  - Netburners (80HL, HNL100, HNR 8, HNC 4)
+
+Travel
+  -Sector 12 (15m)
+    - Aevum (40m)
+  -Chongquing(20m)
+    - New Tokyo (20m)
+      - Ishima (30m)
+  -Volhaven (50m)
+
+Crime
+
+Endgame
+  - Covenant (20a, 75b, 850HL, 850CS)
+  - Daedalus (30a, 100b, 2500HL or 1500CS)
+  - Illuminati (30a, 150b, 1500HL, 1200CS)

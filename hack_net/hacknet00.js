@@ -52,7 +52,7 @@ async function hacknetManager(ns){
   
   display();
   time++;
-  if(actions.length > 10) actions = actions.filter(a => a.time + 30 > time);
+  
 
   function getPlayerInfo(info = ""){ return ns.getPlayer()[info]; }
   function getHackNetInfo(){
@@ -82,16 +82,24 @@ async function hacknetManager(ns){
     return ns.nFormat(arr.reduce((a,b) => a += b.stats.production, 0), '0.00a') + "/sec";
   }
   function display(){
+    let temp = info.nodes.filter(n => n.stats.level < 200 || n.stats.ram < 64 || n.stats.cores < 16 );
+
+    if(temp.length < 3) temp = info.nodes.slice(-3);
+
+    if(time === 10) console.log({ temp, info });
+
     ns.clearLog();
     ns.print(`╔═══════════╦════════════════════════════════╗`);
     ns.print(`║ Hacknet   ║${formatString(getProduction(info.nodes) + ``, 32)}║`);
     ns.print(`╠═════╦═════╬══════╦════╦════════════════════╣`);
     ns.print(`║   N ║   L ║    R ║  C ║         Production ║`);
-    ns.print(`${info.nodes.reduce((a,b,i,r) => a += `║${formatString(i,5)}║${formatString(b.stats.level,5)}║${formatString(b.stats.ram + "gb",6)}║${formatString(b.stats.cores,4)}║${formatString(getProduction([b]), 20)}║${i == r.length - 1 ? '' : '\n'}`, ``)}`);
+    ns.print(`${temp.reduce((a,b,i,r) => a += `║${formatString(b.i,5)}║${formatString(b.stats.level,5)}║${formatString(b.stats.ram + "gb",6)}║${formatString(b.stats.cores,4)}║${formatString(getProduction([b]), 20)}║${i == r.length - 1 ? '' : '\n'}`, ``)}`);
     ns.print(`╠═════╩═════╬══════╩════╩════════════════════╣`);
     ns.print(`║ Action                                     ║`);
     ns.print(`${actions.reduce((a,b,i,r) => a += `║${formatString(b.text, 44)}║${i == r.length - 1 ? '' : '\n'}`, ``)}`);
     ns.print(`╚════════════════════════════════════════════╝`);
+
+    if(actions.length > 5) actions.shift();
 
     function formatString(str, length, padding = ' ') {
       str = str.toString();

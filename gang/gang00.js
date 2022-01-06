@@ -220,3 +220,11 @@ async function gangManger(ns, p) {
     if (display) ns.tprint(text);
   }
 }
+
+/* */
+
+/* Upgrades
+
+  Fix priorities, while still allowing for "args"
+  handle territory growth
+*/
