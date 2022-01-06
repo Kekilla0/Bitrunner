@@ -1,4 +1,4 @@
-/* 9.2gb Ram */
+/* 10.30gb Ram */
 export function getAll(ns){
   let visited = { home : get(ns, 'home')}, que = Object.keys(visited), name = "";
   while(name = que.pop()){
@@ -50,10 +50,13 @@ export function get(ns, name){
     },
     analyze : {
       grow : function(player, servers, core = 1){
-        return ns.growthAnalyze(name,data.moneyMax/data.moneyAvailable, core) - servers.reduce((a,b) => a+= b.files.running.filter(f => f.filename == player.files[2].name && f.args.includes(name)).reduce((c,d) => c += d.threads, 0), 0);
+        let growth = data.moneyMax/data.moneyAvailable;
+
+        if(isNaN(growth)) return 0;
+        return ns.growthAnalyze(name,Math.max(1, growth), core) - servers.reduce((a,b) => a+= b.files.running.filter(f => f.filename == player.files[2].name && f.args.includes(name)).reduce((c,d) => c += d.threads, 0), 0);
       },
       hack : function(player, servers){
-        return (data.moneyAvailable - data.moneyMax/2)/ns.hackAnalyze(name) - servers.reduce((a,b) => a+= b.files.running.filter(f => f.filename == player.files[1].name && f.args.includes(name)).reduce((c,d) => c += d.threads, 0), 0);
+        return (data.moneyAvailable - data.moneyMax/2)/(ns.hackAnalyze(name) * data.moneyAvailable) - servers.reduce((a,b) => a+= b.files.running.filter(f => f.filename == player.files[1].name && f.args.includes(name)).reduce((c,d) => c += d.threads, 0), 0);
       },
       weak : function(player, servers,threads = 1, cores = 1){
         return ((data.hackDifficulty - data.minDifficulty) / ns.weakenAnalyze(threads, cores)) - servers.reduce((a,b) => a+= b.files.running.filter(f => f.filename == player.files[0].name && f.args.includes(name)).reduce((c,d) => c += d.threads, 0), 0);

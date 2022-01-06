@@ -1,6 +1,18 @@
-/* */
-export function manager(ns){
+import * as server_info from '/scripts/server.js';
+import * as player_info from '/scripts/player.js';
 
+/* */
+export async function manager(ns){
+  let servers = server_info.getAll(ns);
+  let player  = player_info.getAll(ns);
+
+  for(let server of servers.filter(s => player.hacking.level >= s.hack.level && player.exes.length >= s.hack.ports))
+    root(ns, player, server);
+
+  for(let server of servers.filter(s => !player.files.reduce((a,b) => a && s.files.installed.includes(b.name), true)))
+    await copy_files(ns, player, server);
+
+  hack(ns, player, server);
 }
 
 export function root(ns, player, server){
@@ -18,35 +30,30 @@ export function hack(ns, player, servers){
   let hosts = servers.filter(s =>player.hacking.level >= s.hack.level && player.exes.length >= s.hack.ports).sort((a,b)=> b.ram.threads(1.75) - a.ram.threads(1.75)); 
   let targets = servers.filter(s => s.money.profit != 0).sort((a,b) => b.money.profit - a.money.profit).map(s =>{ s.actions = []; return s });  
 
-  //for each target, create a # of threads of both growth and weakening requires to gain 100%
-  //if a target hack chance is >50% and money > 80%, create # of threads = to bring money to 50%
   for(let target of targets){
     hosts = hosts.filter(s => s.ram.threads(1.75) > 0);
-
-    let g = target.analyze.grow(), w = target.analyze.weak(), h = target.analyze.hack();
-    //need to determine how many are already doing g/w/h and reduce each by that #
     
-    console.log({ ns, player, servers, hosts, target, g, w, h});
+    let [ wf, hf, gf ] = player.files;
+    let gt = target.analyze.grow(), wt = target.analyze.weak(), ht = target.analyze.hack();
+    
+    console.log({ ns, player, servers, hosts, target, g, w, h, wf, hf, gf});
 
     for(let host of hosts){
       let threads = host.ram.threads(1.75);
 
-      while(threads > 0){ 
-        if(g > 0){
+      while(threads > 0){
+        let pid = 0; 
+        if(gt > 0)
+          pid = ns.exec(gf.name, host.name, 1, target.name, id());
+        else if(wt > 0)
+          pid = ns.exec(wf.name, host.name, 1, target.name, id());
+        else if(ht > 0)
+          pid = ns.exec(hf.name, host.name, 1, target.name, id());
+        else if(gt == 0 && wt == 0 & ht == 0 && threads > 0)
+          threads = 0;
 
-        }
-        else if(w > 0){
-
-        }
-        else{
-
-        }
-        threads-=1;
+        threads-=(pid > 0 ? 1: 0);
       }
     }
   }
-}
-
-export function checkScriptThreads(servers, file){
-
 }
